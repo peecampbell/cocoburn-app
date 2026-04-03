@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#E8956D">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cocoburn">
+  <link rel="manifest" href="manifest.json">
+  <title>Cocoburn Ketogenic Protocol</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- INSERIR icon-192.png -->
+  <!-- INSERIR icon-512.png -->
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --card: #1a1a1a;
+      --card2: #2a1a0e;
+      --salmon: #E8956D;
+      --green: #22c55e;
+      --gold: #fbbf24;
+      --text: #ffffff;
+      --muted: #9ca3af;
+      --nav-h: 64px;
+      --header-h: 60px;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ── ONBOARDING ── */
+    #onboarding {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 100; padding: 24px;
+    }
+    #onboarding.hidden { display: none; }
+
+    .slide { display: none; flex-direction: column; align-items: center; text-align: center; gap: 20px; width: 100%; max-width: 360px; }
+    .slide.active { display: flex; animation: fadeIn 0.3s ease; }
+    .slide-emoji { font-size: 80px; line-height: 1; }
+    .slide h2 { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 800; color: var(--text); }
+    .slide p { font-size: 16px; color: var(--muted); line-height: 1.6; }
+
+    .dots { display: flex; gap: 8px; margin-top: 8px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background 0.2s; }
+    .dot.active { background: var(--salmon); }
+
+    .btn-primary {
+      background: var(--salmon); color: #fff; border: none; border-radius: 14px;
+      padding: 16px 32px; font-family: 'Montserrat', sans-serif; font-size: 17px;
+      font-weight: 700; cursor: pointer; width: 100%; max-width: 320px;
+      letter-spacing: 0.5px; transition: opacity 0.2s; margin-top: 8px;
+    }
+    .btn-primary:active { opacity: 0.85; }
+
+    .btn-ghost {
+      background: transparent; color: var(--muted); border: none;
+      font-size: 15px; cursor: pointer; padding: 8px 16px;
+    }
+
+    /* Name input screen */
+    #name-screen {
+      display: none; flex-direction: column; align-items: center; text-align: center;
+      gap: 20px; width: 100%; max-width: 360px;
+    }
+    #name-screen.active { display: flex; animation: fadeIn 0.3s ease; }
+    #name-screen h2 { font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 800; }
+    #name-screen p { color: var(--muted); font-size: 15px; }
+
+    .input-field {
+      width: 100%; padding: 16px 18px; background: var(--card); border: 1.5px solid #333;
+      border-radius: 14px; color: var(--text); font-size: 16px; font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color 0.2s;
+    }
+    .input-field:focus { border-color: var(--salmon); }
+    .input-field::placeholder { color: var(--muted); }
+
+    /* ── APP SHELL ── */
+    #app { display: none; height: 100%; flex-direction: column; }
+    #app.active { display: flex; }
+
+    /* Header */
+    #header {
+      height: var(--header-h); min-height: var(--header-h);
+      background: #111; border-bottom: 1px solid #222;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    }
+    .header-logo { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 800; color: var(--salmon); }
+    .header-greeting { font-size: 13px; color: var(--muted); text-align: right; }
+    .header-greeting span { color: var(--text); font-weight: 600; }
+
+    /* Content area */
+    #content {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: calc(var(--header-h) + 16px) 16px calc(var(--nav-h) + 16px);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Tabs */
+    .tab { display: none; animation: fadeIn 0.2s ease; }
+    .tab.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Bottom Nav */
+    #bottom-nav {
+      height: var(--nav-h); min-height: var(--nav-h);
+      background: #111; border-top: 1px solid #222;
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px; cursor: pointer;
+      color: #6b7280; transition: color 0.2s; padding: 6px 0;
+      border: none; background: transparent;
+    }
+    .nav-item.active { color: var(--salmon); }
+    .nav-item.active.nav-reset { color: var(--gold); }
+    .nav-icon { font-size: 22px; line-height: 1; }
+
+    /* ── CORTISOL TOAST ── */
+    #cortisol-toast {
+      position: fixed; top: calc(var(--header-h) + 12px); left: 16px; right: 16px;
+      background: var(--green); color: #fff; border-radius: 14px; padding: 14px 18px;
+      font-size: 14px; font-weight: 600; z-index: 300; text-align: center;
+      opacity: 0; transform: translateY(-10px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
+    }
+    #cortisol-toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── RESET TAB ── */
+    .reset-badge {
+      display: block; background: var(--gold); color: #1a0a00;
+      border-radius: 12px; padding: 10px 16px; text-align: center;
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800;
+      letter-spacing: 0.5px; margin-bottom: 12px;
+    }
+    .module-card {
+      background: var(--card); border-radius: 16px; margin-bottom: 12px;
+      overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .module-card.border-gold  { border-left: 4px solid var(--gold); }
+    .module-card.border-salmon { border-left: 4px solid var(--salmon); }
+    .module-card.border-blue  { border-left: 4px solid #1e3a5f; }
+    .module-card.border-secret { background: var(--card2); border: 1.5px solid var(--gold); }
+    .module-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px; cursor: pointer; gap: 12px;
+    }
+    .module-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+    .module-icon { font-size: 24px; flex-shrink: 0; }
+    .module-title { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800; line-height: 1.3; }
+    .module-badge {
+      font-size: 10px; font-weight: 700; color: var(--gold);
+      background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
+      border-radius: 20px; padding: 3px 10px; display: inline-block; margin-top: 4px;
+    }
+    .module-chevron { font-size: 16px; color: var(--muted); flex-shrink: 0; transition: transform 0.3s; }
+    .module-card.open .module-chevron { transform: rotate(180deg); }
+    .module-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+      padding: 0 18px;
+    }
+    .module-card.open .module-body { max-height: 4000px; padding: 0 18px 18px; }
+    .module-intro { font-size: 14px; color: #d1d5db; line-height: 1.6; margin-bottom: 14px; }
+    .module-section {
+      font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--salmon); text-transform: uppercase; letter-spacing: 0.6px; margin: 14px 0 8px;
+    }
+    .module-step { background: #111; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .module-step-title { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 6px; }
+    .module-step-desc { font-size: 13px; color: #d1d5db; line-height: 1.6; }
+    .food-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .food-item { background: #111; border-radius: 10px; padding: 10px 12px; }
+    .food-emoji { font-size: 20px; margin-bottom: 4px; }
+    .food-name { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+    .food-desc { font-size: 11px; color: #d1d5db; line-height: 1.4; }
+    .nav-label { font-size: 10px; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.3px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card); border-radius: 16px;
+      padding: 18px; margin-bottom: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .card-salmon { background: var(--salmon); color: #1a0a00; }
+    .card-dark2 { background: var(--card2); }
+    .card-green { background: rgba(34,197,94,0.12); border: 1.5px solid var(--green); }
+
+    .card-title {
+      font-family: 'Montserrat', sans-serif; font-size: 13px;
+      font-weight: 600; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 6px;
+    }
+    .card-value { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 800; }
+    .card-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    h2.section-title {
+      font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 800;
+      margin-bottom: 6px;
+    }
+    p.section-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+    /* ── RITUAL TAB ── */
+    .day-card { position: relative; overflow: hidden; }
+    .day-card-top { display: flex; justify-content: space-between; align-items: center; }
+    .day-date { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 800; color: #1a0a00; }
+    .day-sub { font-size: 13px; color: rgba(26,10,0,0.7); margin-top: 3px; }
+
+    /* Circular progress */
+    .circle-wrap { position: relative; width: 64px; height: 64px; }
+    .circle-bg { fill: none; stroke: rgba(26,10,0,0.2); stroke-width: 5; }
+    .circle-prog { fill: none; stroke: rgba(26,10,0,0.7); stroke-width: 5;
+      stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.5s ease; }
+    .circle-text { position: absolute; inset: 0; display: flex; align-items: center;
+      justify-content: center; font-family: 'Montserrat', sans-serif;
+      font-size: 15px; font-weight: 800; color: #1a0a00; }
+
+    /* Streak */
+    .streak-card { display: flex; align-items: center; gap: 14px; }
+    .streak-icon { font-size: 36px; }
+    .streak-text { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 700; }
+    .streak-sub { font-size: 13px; color: var(--muted); }
+
+    /* Step cards */
+    .step-card {
+      background: var(--card); border-radius: 14px; padding: 16px;
+      margin-bottom: 10px; display: flex; align-items: flex-start; gap: 14px;
+      cursor: pointer; transition: background 0.2s, border 0.2s;
+      border: 1.5px solid transparent;
+    }
+    .step-card.done { background: rgba(34,197,94,0.08); border-color: var(--green); }
+    .step-card.done .step-title { text-decoration: line-through; color: var(--muted); }
+    .step-emoji { font-size: 26px; flex-shrink: 0; }
+    .step-title { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .step-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .step-check {
+      margin-left: auto; flex-shrink: 0; width: 28px; height: 28px;
+      border-radius: 50%; border: 2px solid #444; display: flex; align-items: center;
+      justify-content: center; font-size: 14px; transition: background 0.2s, border-color 0.2s;
+    }
+    .step-card.done .step-check { background: var(--green); border-color: var(--green); }
+
+    /* Complete banner */
+    #complete-banner {
+      display: none; background: rgba(34,197,94,0.12); border: 1.5px solid var(--green);
+      border-radius: 16px; padding: 20px; text-align: center; margin-top: 8px;
+      animation: popIn 0.4s ease;
+    }
+    #complete-banner.show { display: block; }
+    .complete-emoji { font-size: 40px; }
+    .complete-title { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 800;
+      color: var(--green); margin: 8px 0 6px; }
+    .complete-text { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* Confetti */
+    .confetti-piece {
+      position: fixed; width: 8px; height: 8px; border-radius: 2px;
+      animation: confettiDrop 2s ease-in forwards;
+      pointer-events: none; z-index: 200;
+    }
+    @keyframes confettiDrop {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    .btn-reminder {
+      width: 100%; padding: 14px; background: var(--card2); border: 1.5px solid var(--salmon);
+      border-radius: 14px; color: var(--salmon); font-family: 'Montserrat', sans-serif;
+      font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .btn-reminder:active { background: rgba(232,149,109,0.15); }
+
+    /* ── PROGRESS TAB ── */
+    .stats-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; }
+    .stats-row::-webkit-scrollbar { display: none; }
+    .stat-card {
+      background: var(--card); border-radius: 14px; padding: 14px 16px;
+      flex-shrink: 0; min-width: 130px;
+    }
+    .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 800; }
+    .stat-unit { font-size: 12px; color: var(--muted); }
+
+    .form-group { margin-bottom: 12px; }
+    .form-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; display: block; }
+
+    .btn-save {
+      width: 100%; padding: 15px; background: var(--salmon); border: none;
+      border-radius: 14px; color: #fff; font-family: 'Montserrat', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-save:active { opacity: 0.85; }
+
+    .success-msg {
+      display: none; color: var(--green); font-size: 14px; font-weight: 600;
+      text-align: center; margin-top: 10px; padding: 10px; background: rgba(34,197,94,0.08);
+      border-radius: 10px; animation: fadeIn 0.3s;
+    }
+    .success-msg.show { display: block; }
+
+    canvas#weightChart { width: 100%; border-radius: 12px; display: block; }
+    .chart-empty { color: var(--muted); font-size: 14px; text-align: center; padding: 32px 0; }
+
+    .log-item {
+      background: var(--card); border-radius: 12px; padding: 12px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .log-date { font-size: 13px; font-weight: 600; }
+    .log-data { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .btn-del {
+      background: rgba(239,68,68,0.12); border: none; color: #ef4444;
+      border-radius: 8px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+      font-weight: 600; flex-shrink: 0;
+    }
+
+    /* ── BONUSES TAB ── */
+    .bonus-card {
+      background: var(--card); border-radius: 16px; margin-bottom: 12px;
+      overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .bonus-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px; cursor: pointer; gap: 12px;
+    }
+    .bonus-left { display: flex; align-items: center; gap: 12px; }
+    .bonus-emoji { font-size: 28px; flex-shrink: 0; }
+    .bonus-title { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; line-height: 1.3; }
+    .bonus-badge {
+      font-size: 10px; font-weight: 700; color: var(--gold); background: rgba(251,191,36,0.12);
+      border: 1px solid rgba(251,191,36,0.3); border-radius: 20px; padding: 3px 10px;
+      display: inline-block; margin-top: 4px; letter-spacing: 0.3px;
+    }
+    .bonus-chevron { font-size: 18px; color: var(--muted); flex-shrink: 0; transition: transform 0.3s; }
+    .bonus-card.open .bonus-chevron { transform: rotate(180deg); }
+
+    .bonus-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+      padding: 0 18px;
+    }
+    .bonus-card.open .bonus-body { max-height: 2000px; padding: 0 18px 18px; }
+
+    .bonus-intro { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+    .bonus-section-title {
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700;
+      color: var(--salmon); text-transform: uppercase; letter-spacing: 0.6px;
+      margin-bottom: 10px;
+    }
+    .bonus-step {
+      background: #111; border-radius: 12px; padding: 14px;
+      margin-bottom: 10px;
+    }
+    .bonus-step-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .bonus-step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    .ingredient-list { padding-left: 0; list-style: none; margin-bottom: 12px; }
+    .ingredient-list li { font-size: 13px; color: var(--muted); padding: 4px 0; padding-left: 16px; position: relative; }
+    .ingredient-list li::before { content: "•"; position: absolute; left: 0; color: var(--salmon); }
+
+    .benefit-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 6px; line-height: 1.4; }
+    .benefit-item span:first-child { flex-shrink: 0; }
+
+    .tip-box {
+      background: var(--card2); border-left: 3px solid var(--salmon); border-radius: 0 10px 10px 0;
+      padding: 12px 14px; margin-top: 12px; font-size: 13px; color: var(--muted); line-height: 1.5;
+    }
+
+    /* ── RECIPES TAB ── */
+    .filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      flex-shrink: 0; padding: 8px 18px; border-radius: 20px;
+      border: 1.5px solid #333; background: transparent; color: var(--muted);
+      font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .filter-pill.active { background: var(--salmon); border-color: var(--salmon); color: #fff; }
+
+    .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .recipe-card {
+      background: var(--card); border-radius: 14px; padding: 14px;
+      cursor: pointer; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .recipe-card.expanded { grid-column: span 2; }
+    .recipe-emoji { font-size: 36px; margin-bottom: 8px; }
+    .recipe-name { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+    .recipe-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .recipe-time { font-size: 11px; color: var(--muted); }
+    .recipe-cat {
+      font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+      background: rgba(232,149,109,0.15); color: var(--salmon);
+    }
+    .recipe-detail { display: none; margin-top: 12px; animation: fadeIn 0.2s; }
+    .recipe-card.expanded .recipe-detail { display: block; }
+
+    .recipe-section-title {
+      font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--salmon); text-transform: uppercase; letter-spacing: 0.6px;
+      margin: 12px 0 6px;
+    }
+    .recipe-text { font-size: 13px; color: var(--muted); line-height: 1.55; }
+    .recipe-benefits { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .recipe-benefit-tag {
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+      color: var(--green); font-size: 11px; font-weight: 600; padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .recipe-close { display: block; text-align: center; color: var(--muted); font-size: 13px; margin-top: 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     ONBOARDING
+══════════════════════════════════ -->
+<div id="onboarding">
+  <!-- Slide 1 -->
+  <div class="slide active" id="slide-1">
+    <div class="slide-emoji">🥥</div>
+    <h2>Welcome to Your Protocol</h2>
+    <p>A 10-second morning ritual that forces your body into ketosis — burning fat 24 hours a day.</p>
+  </div>
+  <!-- Slide 2 -->
+  <div class="slide" id="slide-2">
+    <div class="slide-emoji">📊</div>
+    <h2>Track Your Progress</h2>
+    <p>Log your weight and measurements daily. Watch your body transform week by week.</p>
+  </div>
+  <!-- Slide 3 -->
+  <div class="slide" id="slide-3">
+    <div class="slide-emoji">🎁</div>
+    <h2>5 Exclusive Bonuses Included</h2>
+    <p>Everything you need for a complete transformation — all in one place.</p>
+  </div>
+  <!-- Name screen -->
+  <div id="name-screen">
+    <div class="slide-emoji">✨</div>
+    <h2>What's your first name?</h2>
+    <p>We'll personalize your protocol experience just for you.</p>
+    <input type="text" class="input-field" id="user-name-input" placeholder="Enter your first name" maxlength="30">
+    <button class="btn-primary" onclick="startProtocol()">Start My Protocol</button>
+  </div>
+
+  <div class="dots" id="onboarding-dots">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+  <button class="btn-primary" id="ob-next-btn" onclick="nextSlide()">Next →</button>
+  <button class="btn-ghost" id="ob-skip-btn" onclick="skipToName()">Skip</button>
+</div>
+
+<!-- ══════════════════════════════════
+     APP
+══════════════════════════════════ -->
+<div id="app">
+  <!-- Header -->
+  <div id="header">
+    <div class="header-logo">🥥 Cocoburn</div>
+    <div class="header-greeting" id="greeting">Good morning, <span id="greeting-name">there</span>!</div>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- TAB 1: RITUAL -->
+    <div class="tab active" id="tab-ritual">
+      <h2 class="section-title">My Ritual</h2>
+      <p class="section-sub" id="ritual-date-label">Today is a great day to commit.</p>
+
+      <!-- Day card -->
+      <div class="card card-salmon day-card">
+        <div class="day-card-top">
+          <div>
+            <div class="day-date" id="today-date">—</div>
+            <div class="day-sub" id="day-n">Day — of your protocol</div>
+          </div>
+          <div class="circle-wrap">
+            <svg viewBox="0 0 64 64" width="64" height="64">
+              <circle class="circle-bg" cx="32" cy="32" r="27"/>
+              <circle class="circle-prog" id="progress-ring" cx="32" cy="32" r="27"
+                stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
+            </svg>
+            <div class="circle-text" id="progress-pct">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak -->
+      <div class="card card-dark2">
+        <div class="streak-card">
+          <div class="streak-icon">🔥</div>
+          <div>
+            <div class="streak-text"><span id="streak-count">0</span> Day Streak</div>
+            <div class="streak-sub">Keep it going!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <div class="card">
+        <h3 style="font-family:'Montserrat',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px;">Your Morning Ritual</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Complete each step before breakfast</p>
+
+        <div class="step-card" id="step-1" onclick="toggleStep(1)">
+          <div class="step-emoji">⏰</div>
+          <div style="flex:1;">
+            <div class="step-title">Wake Up on Empty Stomach</div>
+            <div class="step-desc">Perform this ritual first thing in the morning, before eating or drinking anything else.</div>
+          </div>
+          <div class="step-check" id="check-1"></div>
+        </div>
+
+        <div class="step-card" id="step-2" onclick="toggleStep(2)">
+          <div class="step-emoji">🥥</div>
+          <div style="flex:1;">
+            <div class="step-title">Prepare Your Coconut MCT Mix</div>
+            <div class="step-desc">Add 1 tablespoon of virgin coconut oil to a glass of warm water (not hot). Stir for 10 seconds until slightly dissolved.</div>
+          </div>
+          <div class="step-check" id="check-2"></div>
+        </div>
+
+        <div class="step-card" id="step-3" onclick="toggleStep(3)">
+          <div class="step-emoji">🍋</div>
+          <div style="flex:1;">
+            <div class="step-title">Add the Activation Ingredients</div>
+            <div class="step-desc">Squeeze half a lemon into the mix. Add a pinch of pink Himalayan salt. Stir once more for 5 seconds.</div>
+          </div>
+          <div class="step-check" id="check-3"></div>
+        </div>
+
+        <div class="step-card" id="step-4" onclick="toggleStep(4)">
+          <div class="step-emoji">✨</div>
+          <div style="flex:1;">
+            <div class="step-title">Drink Slowly &amp; Mindfully</div>
+            <div class="step-desc">Drink the entire mixture slowly over 2–3 minutes. Your body will begin entering ketosis within 30–60 minutes.</div>
+          </div>
+          <div class="step-check" id="check-4"></div>
+        </div>
+      </div>
+
+      <!-- Complete banner -->
+      <div id="complete-banner">
+        <div class="complete-emoji">🎉</div>
+        <div class="complete-title">Ritual Complete!</div>
+        <div class="complete-text">Your body is now entering ketosis. Have a great day — you crushed it!</div>
+      </div>
+
+      <button class="btn-reminder" onclick="showReminder()">⏱️ Set Morning Reminder</button>
+    </div>
+
+    <!-- TAB 2: PROGRESS -->
+    <div class="tab" id="tab-progress">
+      <h2 class="section-title">My Progress</h2>
+      <p class="section-sub">Track your transformation journey</p>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">⚖️ Starting</div>
+          <div class="stat-val"><span id="starting-w">—</span> <span class="stat-unit">lbs</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📉 Current</div>
+          <div class="stat-val"><span id="current-w">—</span> <span class="stat-unit">lbs</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">🏆 Lost</div>
+          <div class="stat-val"><span id="lost-w">—</span> <span class="stat-unit">lbs</span></div>
+        </div>
+      </div>
+
+      <!-- Log form -->
+      <div class="card">
+        <h3 style="font-family:'Montserrat',sans-serif;font-size:16px;font-weight:800;margin-bottom:14px;">Log Today's Stats</h3>
+        <div class="form-group">
+          <label class="form-label">Weight today (lbs)</label>
+          <input type="number" class="input-field" id="log-weight" placeholder="e.g. 145.5" step="0.1" min="50" max="500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Waist (inches)</label>
+          <input type="number" class="input-field" id="log-waist" placeholder="e.g. 30" step="0.5" min="10" max="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hips (inches)</label>
+          <input type="number" class="input-field" id="log-hips" placeholder="e.g. 36" step="0.5" min="10" max="100">
+        </div>
+        <button class="btn-save" onclick="saveLog()">💾 Save Today's Log</button>
+        <div class="success-msg" id="log-success">✅ Logged! Great job tracking your progress.</div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card" id="chart-card">
+        <h3 style="font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;">Weight Over Time</h3>
+        <canvas id="weightChart" height="180"></canvas>
+        <div class="chart-empty" id="chart-empty" style="display:none;">Log at least 2 days to see your progress chart 📈</div>
+      </div>
+
+      <!-- History -->
+      <div class="card">
+        <h3 style="font-family:'Montserrat',sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;">Recent Logs</h3>
+        <div id="log-history"><p style="font-size:14px;color:var(--muted);text-align:center;padding:16px 0;">No logs yet. Start tracking today!</p></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: BONUSES -->
+    <div class="tab" id="tab-bonuses">
+      <h2 class="section-title">Your Exclusive Bonuses</h2>
+      <p class="section-sub">5 guides included with your protocol</p>
+
+      <!-- Bonus 1 -->
+      <div class="bonus-card" id="bonus-1">
+        <div class="bonus-header" onclick="toggleBonus(1)">
+          <div class="bonus-left">
+            <div class="bonus-emoji">👗</div>
+            <div>
+              <div class="bonus-title">The Victoria's Secret Method in 45 Days</div>
+              <div class="bonus-badge">FREE BONUS #1 — Value: $20</div>
+            </div>
+          </div>
+          <div class="bonus-chevron">▼</div>
+        </div>
+        <div class="bonus-body">
+          <p class="bonus-intro">This bonus reveals a secret waist-reshaping lesson used by some of the world's most confident women — no dieting, no waist trainers required.</p>
+          <div class="bonus-section-title">The 2-Minute Daily Belly Routine</div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">Step 1 — Deep Diaphragmatic Breathing (30 sec)</div>
+            <div class="bonus-step-desc">Inhale deeply through your nose for 4 counts, expanding your belly outward. Hold for 2 counts. Exhale slowly through your mouth for 6 counts. Repeat 5 times.</div>
+          </div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">Step 2 — Standing Vacuum Hold (60 sec)</div>
+            <div class="bonus-step-desc">Exhale all air from your lungs completely. Pull your belly button toward your spine as hard as you can. Hold for 10 seconds, release. Repeat 6 times.</div>
+          </div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">Step 3 — Side Waist Activation (30 sec)</div>
+            <div class="bonus-step-desc">Stand with feet shoulder-width apart. Place hands on hips. Lean slowly to the right, feeling a stretch on the left side. Hold 5 seconds. Switch sides. Repeat 3 times each.</div>
+          </div>
+          <div class="tip-box">💡 <strong>Pro Tip:</strong> Do this immediately after your morning coconut ritual for maximum fat-burning synergy.</div>
+        </div>
+      </div>
+
+      <!-- Bonus 2 -->
+      <div class="bonus-card" id="bonus-2">
+        <div class="bonus-header" onclick="toggleBonus(2)">
+          <div class="bonus-left">
+            <div class="bonus-emoji">🍹</div>
+            <div>
+              <div class="bonus-title">The Mediterranean Cocktail Formula</div>
+              <div class="bonus-badge">FREE BONUS #2 — Value: $39</div>
+            </div>
+          </div>
+          <div class="bonus-chevron">▼</div>
+        </div>
+        <div class="bonus-body">
+          <p class="bonus-intro">An ancient elixir used by Mediterranean women for centuries to achieve firm, toned legs free from spider veins and fluid retention.</p>
+          <div class="bonus-section-title">The Formula</div>
+          <ul class="ingredient-list">
+            <li>1 cup warm water</li>
+            <li>Juice of 1 lemon</li>
+            <li>1 tsp raw apple cider vinegar</li>
+            <li>1 tsp raw honey (optional)</li>
+            <li>A pinch of cayenne pepper</li>
+            <li>3 fresh mint leaves</li>
+          </ul>
+          <div class="bonus-step">
+            <div class="bonus-step-desc">Combine all ingredients in a glass. Stir gently. Drink slowly in the afternoon, ideally 30 minutes before your largest meal. Consume 5 days per week for best results.</div>
+          </div>
+          <div class="bonus-section-title" style="margin-top:14px;">Benefits</div>
+          <div class="benefit-item"><span>✅</span><span>Reduces fluid retention visibly within 7–10 days</span></div>
+          <div class="benefit-item"><span>✅</span><span>Improves circulation, reducing spider vein appearance</span></div>
+          <div class="benefit-item"><span>✅</span><span>Anti-inflammatory properties firm and tone skin tissue</span></div>
+        </div>
+      </div>
+
+      <!-- Bonus 3 -->
+      <div class="bonus-card" id="bonus-3">
+        <div class="bonus-header" onclick="toggleBonus(3)">
+          <div class="bonus-left">
+            <div class="bonus-emoji">✨</div>
+            <div>
+              <div class="bonus-title">The Secret to Eliminating Facial Dark Spots</div>
+              <div class="bonus-badge">FREE BONUS #3 — Value: $19/month</div>
+            </div>
+          </div>
+          <div class="bonus-chevron">▼</div>
+        </div>
+        <div class="bonus-body">
+          <p class="bonus-intro">The Korean beauty secret to removing skin discoloration in 60 seconds using the avocado technique — 100% natural.</p>
+          <div class="bonus-section-title">The 60-Second Avocado Technique</div>
+          <div class="bonus-section-title" style="color:var(--muted);font-size:12px;">What You Need</div>
+          <ul class="ingredient-list">
+            <li>½ ripe avocado</li>
+            <li>1 tsp raw honey</li>
+            <li>3 drops lemon juice</li>
+          </ul>
+          <div class="bonus-step">
+            <div class="bonus-step-title">Method</div>
+            <div class="bonus-step-desc">Mash the avocado into a smooth paste. Add honey and lemon juice. Mix well. Apply directly to dark spots using a clean fingertip. Leave for 15 minutes. Rinse with cool water. Use 3x per week.</div>
+          </div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">Why It Works</div>
+            <div class="bonus-step-desc">Avocado contains glutathione, a natural skin-brightening compound. Combined with lemon's vitamin C and honey's antibacterial properties, this mask inhibits melanin production — the root cause of dark spots.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bonus 4 -->
+      <div class="bonus-card" id="bonus-4">
+        <div class="bonus-header" onclick="toggleBonus(4)">
+          <div class="bonus-left">
+            <div class="bonus-emoji">⚡</div>
+            <div>
+              <div class="bonus-title">20 Ways to Speed Up Your Metabolism</div>
+              <div class="bonus-badge">FREE BONUS #4 — Value: $49</div>
+            </div>
+          </div>
+          <div class="bonus-chevron">▼</div>
+        </div>
+        <div class="bonus-body">
+          <p class="bonus-intro">Learn how to double your calorie burn at rest, including the revolutionary 5-minute ice technique.</p>
+          <div class="bonus-section-title">Top 5 Methods</div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">🧊 1. The Ice Technique</div>
+            <div class="bonus-step-desc">Apply an ice pack to the back of your neck for 5 minutes each morning. Activates brown fat tissue, which burns calories to generate heat.</div>
+          </div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">💧 2. Cold Water First</div>
+            <div class="bonus-step-desc">Drink 500ml of cold water immediately upon waking. Boosts metabolism by up to 30% for 60 minutes.</div>
+          </div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">🌶️ 3. Cayenne Every Day</div>
+            <div class="bonus-step-desc">Add cayenne pepper to one daily meal. Capsaicin increases thermogenesis and fat oxidation.</div>
+          </div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">🚶 4. Walk After Meals</div>
+            <div class="bonus-step-desc">A 10-minute walk after each meal reduces glucose spikes and keeps metabolism active throughout the day.</div>
+          </div>
+          <div class="bonus-step">
+            <div class="bonus-step-title">😴 5. Prioritize Deep Sleep</div>
+            <div class="bonus-step-desc">Growth hormone (released during deep sleep) is your body's primary fat-burning hormone. 7–9 hours is non-negotiable.</div>
+          </div>
+          <div class="tip-box">💡 Combine Method #1 (ice) with your morning coconut ritual for a powerful metabolic double-trigger.</div>
+        </div>
+      </div>
+
+      <!-- Bonus 5 -->
+      <div class="bonus-card" id="bonus-5">
+        <div class="bonus-header" onclick="toggleBonus(5)">
+          <div class="bonus-left">
+            <div class="bonus-emoji">🩺</div>
+            <div>
+              <div class="bonus-title">The Diabetes &amp; Collagen Guide</div>
+              <div class="bonus-badge">FREE BONUS #5 — Value: $29</div>
+            </div>
+          </div>
+          <div class="bonus-chevron">▼</div>
+        </div>
+        <div class="bonus-body">
+          <p class="bonus-intro">Nine recipes to manage blood sugar using apple cider vinegar, plus an aloe vera skin hydration protocol.</p>
+          <div class="bonus-section-title">Recipe 1: Morning Blood Sugar Reset Drink</div>
+          <ul class="ingredient-list">
+            <li>1 tbsp apple cider vinegar</li>
+            <li>1 cup warm water</li>
+            <li>½ tsp cinnamon</li>
+            <li>1 tsp raw honey</li>
+          </ul>
+          <div class="bonus-step">
+            <div class="bonus-step-desc">Mix and drink 15 minutes before breakfast to blunt glucose spikes.</div>
+          </div>
+          <div class="bonus-section-title" style="margin-top:14px;">Recipe 2: Collagen-Boosting Aloe Vera Gel</div>
+          <ul class="ingredient-list">
+            <li>2 tbsp fresh aloe vera gel (from leaf)</li>
+            <li>1 tsp coconut oil</li>
+            <li>3 drops vitamin E oil</li>
+          </ul>
+          <div class="bonus-step">
+            <div class="bonus-step-desc">Mix and apply to face and neck before bed. Rinse in the morning. Use 4x per week for visible skin firmness in 3–4 weeks.</div>
+          </div>
+          <div class="tip-box">💡 Apple cider vinegar taken before meals has been shown to improve insulin sensitivity by up to 19% in clinical studies.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: RECIPES -->
+    <div class="tab" id="tab-recipes">
+      <h2 class="section-title">Recipes &amp; Guides</h2>
+      <p class="section-sub">Eat well. Stay in ketosis.</p>
+
+      <div class="filter-row" id="filter-row">
+        <button class="filter-pill active" onclick="filterRecipes('all',this)">All</button>
+        <button class="filter-pill" onclick="filterRecipes('breakfast',this)">Breakfast</button>
+        <button class="filter-pill" onclick="filterRecipes('lunch',this)">Lunch</button>
+        <button class="filter-pill" onclick="filterRecipes('dinner',this)">Dinner</button>
+        <button class="filter-pill" onclick="filterRecipes('snacks',this)">Snacks</button>
+        <button class="filter-pill" onclick="filterRecipes('drinks',this)">Drinks</button>
+      </div>
+
+      <div class="recipe-grid" id="recipe-grid">
+
+        <div class="recipe-card" data-cat="breakfast" id="recipe-1" onclick="toggleRecipe(1)">
+          <div class="recipe-emoji">🥥</div>
+          <div class="recipe-name">Coconut MCT Morning Smoothie</div>
+          <div class="recipe-meta">
+            <span class="recipe-time">⏱ 5 min</span>
+            <span class="recipe-cat">Breakfast</span>
+          </div>
+          <div class="recipe-detail">
+            <div class="recipe-section-title">Ingredients</div>
+            <ul class="ingredient-list">
+              <li>1 tbsp coconut oil</li><li>1 cup unsweetened almond milk</li>
+              <li>½ frozen banana</li><li>1 tsp cinnamon</li>
+              <li>1 tsp vanilla extract</li><li>Ice cubes</li>
+            </ul>
+            <div class="recipe-section-title">Instructions</div>
+            <p class="recipe-text">Blend all ingredients for 30 seconds. Drink immediately after your morning ritual for sustained energy and ketosis support.</p>
+            <div class="recipe-benefits">
+              <span class="recipe-benefit-tag">⚡ Extends ketosis</span>
+              <span class="recipe-benefit-tag">🔥 Boosts metabolism</span>
+            </div>
+            <span class="recipe-close">▲ Close</span>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-cat="lunch" id="recipe-2" onclick="toggleRecipe(2)">
+          <div class="recipe-emoji">🥗</div>
+          <div class="recipe-name">Filipino-Inspired Coconut Chicken Bowl</div>
+          <div class="recipe-meta">
+            <span class="recipe-time">⏱ 20 min</span>
+            <span class="recipe-cat">Lunch</span>
+          </div>
+          <div class="recipe-detail">
+            <div class="recipe-section-title">Ingredients</div>
+            <ul class="ingredient-list">
+              <li>200g grilled chicken breast</li><li>1 cup cauliflower rice</li>
+              <li>2 tbsp coconut aminos</li><li>1 tsp coconut oil</li>
+              <li>Mixed greens</li><li>Lime juice</li>
+            </ul>
+            <div class="recipe-section-title">Instructions</div>
+            <p class="recipe-text">Cook chicken in coconut oil. Serve over cauliflower rice. Drizzle with coconut aminos and lime. Top with mixed greens.</p>
+            <div class="recipe-benefits">
+              <span class="recipe-benefit-tag">💪 High protein</span>
+              <span class="recipe-benefit-tag">🥥 MCT-rich</span>
+            </div>
+            <span class="recipe-close">▲ Close</span>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-cat="dinner" id="recipe-3" onclick="toggleRecipe(3)">
+          <div class="recipe-emoji">🍲</div>
+          <div class="recipe-name">Metabolism-Boosting Coconut Curry</div>
+          <div class="recipe-meta">
+            <span class="recipe-time">⏱ 30 min</span>
+            <span class="recipe-cat">Dinner</span>
+          </div>
+          <div class="recipe-detail">
+            <div class="recipe-section-title">Ingredients</div>
+            <ul class="ingredient-list">
+              <li>1 can coconut milk</li><li>200g shrimp or tofu</li>
+              <li>1 tbsp curry powder</li><li>1 tsp turmeric</li>
+              <li>1 cup zucchini</li><li>Fresh ginger &amp; garlic</li>
+            </ul>
+            <div class="recipe-section-title">Instructions</div>
+            <p class="recipe-text">Sauté garlic and ginger in coconut oil. Add curry powder and turmeric. Pour coconut milk. Add shrimp/tofu and zucchini. Simmer 15 minutes. Serve hot.</p>
+            <div class="recipe-benefits">
+              <span class="recipe-benefit-tag">🔥 Anti-inflammatory</span>
+              <span class="recipe-benefit-tag">⚖️ Fat burning</span>
+            </div>
+            <span class="recipe-close">▲ Close</span>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-cat="snacks" id="recipe-4" onclick="toggleRecipe(4)">
+          <div class="recipe-emoji">🫐</div>
+          <div class="recipe-name">Keto Energy Bites</div>
+          <div class="recipe-meta">
+            <span class="recipe-time">⏱ 10 min</span>
+            <span class="recipe-cat">Snacks</span>
+          </div>
+          <div class="recipe-detail">
+            <div class="recipe-section-title">Ingredients</div>
+            <ul class="ingredient-list">
+              <li>1 cup almond flour</li><li>2 tbsp coconut oil (melted)</li>
+              <li>2 tbsp raw honey</li><li>1 tsp vanilla</li>
+              <li>Pinch of sea salt</li><li>Dark chocolate chips</li>
+            </ul>
+            <div class="recipe-section-title">Instructions</div>
+            <p class="recipe-text">Mix all ingredients. Roll into small balls. Refrigerate for 30 minutes. Store in fridge up to 7 days.</p>
+            <div class="recipe-benefits">
+              <span class="recipe-benefit-tag">⚡ Quick energy</span>
+              <span class="recipe-benefit-tag">🧠 Brain fuel</span>
+            </div>
+            <span class="recipe-close">▲ Close</span>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-cat="drinks" id="recipe-5" onclick="toggleRecipe(5)">
+          <div class="recipe-emoji">🍵</div>
+          <div class="recipe-name">Ketogenic Golden Milk</div>
+          <div class="recipe-meta">
+            <span class="recipe-time">⏱ 5 min</span>
+            <span class="recipe-cat">Drinks</span>
+          </div>
+          <div class="recipe-detail">
+            <div class="recipe-section-title">Ingredients</div>
+            <ul class="ingredient-list">
+              <li>1 cup coconut milk</li><li>1 tsp turmeric</li>
+              <li>½ tsp cinnamon</li><li>¼ tsp ginger</li>
+              <li>1 tsp coconut oil</li><li>1 tsp raw honey</li><li>Pinch of black pepper</li>
+            </ul>
+            <div class="recipe-section-title">Instructions</div>
+            <p class="recipe-text">Warm coconut milk in a pan (do not boil). Whisk in all spices and coconut oil. Add honey. Pour into mug and enjoy before bed.</p>
+            <div class="recipe-benefits">
+              <span class="recipe-benefit-tag">😴 Improves sleep</span>
+              <span class="recipe-benefit-tag">🔥 Anti-inflammatory</span>
+            </div>
+            <span class="recipe-close">▲ Close</span>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-cat="breakfast" id="recipe-6" onclick="toggleRecipe(6)">
+          <div class="recipe-emoji">🍳</div>
+          <div class="recipe-name">Coconut Oil Scrambled Eggs</div>
+          <div class="recipe-meta">
+            <span class="recipe-time">⏱ 8 min</span>
+            <span class="recipe-cat">Breakfast</span>
+          </div>
+          <div class="recipe-detail">
+            <div class="recipe-section-title">Ingredients</div>
+            <ul class="ingredient-list">
+              <li>3 eggs</li><li>1 tbsp coconut oil</li>
+              <li>2 tbsp coconut milk</li><li>Salt &amp; pepper</li>
+              <li>Fresh chives</li><li>Optional: smoked salmon</li>
+            </ul>
+            <div class="recipe-section-title">Instructions</div>
+            <p class="recipe-text">Whisk eggs with coconut milk. Cook in coconut oil over low heat, stirring constantly. Remove when just set. Top with chives.</p>
+            <div class="recipe-benefits">
+              <span class="recipe-benefit-tag">🥚 Protein-rich</span>
+              <span class="recipe-benefit-tag">🥥 Ketosis-friendly</span>
+            </div>
+            <span class="recipe-close">▲ Close</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Bottom Nav -->
+  <div id="bottom-nav">
+    <button class="nav-item active" id="nav-ritual" onclick="switchTab('ritual')">
+      <span class="nav-icon">🌅</span>
+      <span class="nav-label">Ritual</span>
+    </button>
+    <button class="nav-item" id="nav-progress" onclick="switchTab('progress')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Progress</span>
+    </button>
+    <button class="nav-item" id="nav-bonuses" onclick="switchTab('bonuses')">
+      <span class="nav-icon">🎁</span>
+      <span class="nav-label">Bonuses</span>
+    </button>
+    <button class="nav-item" id="nav-recipes" onclick="switchTab('recipes')">
+      <span class="nav-icon">🥥</span>
+      <span class="nav-label">Recipes</span>
+    </button>
+  </div>
+</div>
+
+<!-- Cortisol unlock toast -->
+<div id="cortisol-toast"></div>
+
+<script>
+// ══════════════════════════════════
+// HELPERS
+// ══════════════════════════════════
+const LS = {
+  get: k => { try { return localStorage.getItem(k); } catch(e) { return null; } },
+  set: (k,v) => { try { localStorage.setItem(k, v); } catch(e) {} },
+  getJSON: k => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch(e) { return null; } },
+  setJSON: (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+};
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function formatDate(d) {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate();
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+// ══════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════
+let currentSlide = 1;
+const TOTAL_SLIDES = 3;
+
+function nextSlide() {
+  if (currentSlide < TOTAL_SLIDES) {
+    document.getElementById('slide-'+currentSlide).classList.remove('active');
+    currentSlide++;
+    document.getElementById('slide-'+currentSlide).classList.add('active');
+    updateDots();
+    if (currentSlide === TOTAL_SLIDES) {
+      document.getElementById('ob-next-btn').textContent = 'GET STARTED →';
+      document.getElementById('ob-next-btn').onclick = skipToName;
+    }
+  }
+}
+
+function skipToName() {
+  for (let i = 1; i <= TOTAL_SLIDES; i++) document.getElementById('slide-'+i).classList.remove('active');
+  document.getElementById('onboarding-dots').style.display = 'none';
+  document.getElementById('ob-next-btn').style.display = 'none';
+  document.getElementById('ob-skip-btn').style.display = 'none';
+  document.getElementById('name-screen').classList.add('active');
+}
+
+function updateDots() {
+  const dots = document.querySelectorAll('.dot');
+  dots.forEach((d,i) => d.classList.toggle('active', i === currentSlide - 1));
+}
+
+function startProtocol() {
+  const nameInput = document.getElementById('user-name-input').value.trim();
+  const name = nameInput || 'Friend';
+  LS.set('cocoburn_name', name);
+  LS.set('cocoburn_onboarded', 'true');
+  if (!LS.get('cocoburn_start_date')) LS.set('cocoburn_start_date', todayKey());
+  launchApp(name);
+}
+
+// ══════════════════════════════════
+// LAUNCH APP
+// ══════════════════════════════════
+function launchApp(name) {
+  document.getElementById('onboarding').classList.add('hidden');
+  document.getElementById('app').classList.add('active');
+  initApp(name);
+}
+
+function initApp(name) {
+  // Greeting
+  document.getElementById('greeting-name').textContent = name;
+  document.getElementById('greeting').firstChild.textContent = getGreeting()+', ';
+
+  // Date & day N
+  const now = new Date();
+  document.getElementById('today-date').textContent = formatDate(now);
+  const startStr = LS.get('cocoburn_start_date') || todayKey();
+  const start = new Date(startStr+'T12:00:00');
+  const dayN = Math.max(1, Math.round((now - start) / 86400000) + 1);
+  document.getElementById('day-n').textContent = 'Day '+dayN+' of your protocol';
+
+  // Streak
+  const streak = calculateStreak();
+  document.getElementById('streak-count').textContent = streak;
+
+  // Steps state
+  loadStepState();
+
+  // Progress tab
+  loadProgressData();
+}
+
+// ══════════════════════════════════
+// RITUAL STEPS
+// ══════════════════════════════════
+const stepState = { 1: false, 2: false, 3: false, 4: false };
+
+function loadStepState() {
+  const today = todayKey();
+  const saved = LS.getJSON('cocoburn_steps_'+today) || {};
+  for (let i = 1; i <= 4; i++) {
+    stepState[i] = !!saved[i];
+    applyStepUI(i);
+  }
+  updateProgress();
+  if (LS.get('cocoburn_ritual_'+today) === 'true') showCompleteBanner(false);
+}
+
+function toggleStep(n) {
+  stepState[n] = !stepState[n];
+  applyStepUI(n);
+  saveStepState();
+  updateProgress();
+  checkAllDone();
+}
+
+function applyStepUI(n) {
+  const card = document.getElementById('step-'+n);
+  const check = document.getElementById('check-'+n);
+  if (stepState[n]) {
+    card.classList.add('done');
+    check.textContent = '✅';
+  } else {
+    card.classList.remove('done');
+    check.textContent = '';
+  }
+}
+
+function saveStepState() {
+  LS.setJSON('cocoburn_steps_'+todayKey(), stepState);
+}
+
+function updateProgress() {
+  const done = Object.values(stepState).filter(Boolean).length;
+  const pct = Math.round((done / 4) * 100);
+  const circum = 2 * Math.PI * 27;
+  const offset = circum - (pct / 100) * circum;
+  document.getElementById('progress-ring').style.strokeDashoffset = offset;
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+
+function checkAllDone() {
+  const allDone = Object.values(stepState).every(Boolean);
+  if (allDone) {
+    const today = todayKey();
+    if (LS.get('cocoburn_ritual_'+today) !== 'true') {
+      LS.set('cocoburn_ritual_'+today, 'true');
+      updateStreak();
+      launchConfetti();
+    }
+    showCompleteBanner(true);
+  }
+}
+
+function showCompleteBanner(animate) {
+  const banner = document.getElementById('complete-banner');
+  banner.classList.add('show');
+  if (!animate) banner.style.animation = 'none';
+}
+
+function updateStreak() {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const k = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if (LS.get('cocoburn_ritual_'+k) === 'true') streak++;
+    else break;
+  }
+  LS.set('cocoburn_streak', streak);
+  document.getElementById('streak-count').textContent = streak;
+}
+
+function calculateStreak() {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const k = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if (LS.get('cocoburn_ritual_'+k) === 'true') streak++;
+    else break;
+  }
+  return streak;
+}
+
+// ══════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════
+function launchConfetti() {
+  const colors = ['#E8956D','#fbbf24','#22c55e','#ffffff','#f472b6'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left:${Math.random()*100}vw;
+      top:-10px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*0.8}s;
+      animation-duration:${1.5+Math.random()}s;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+}
+
+// ══════════════════════════════════
+// REMINDER
+// ══════════════════════════════════
+function showReminder() {
+  alert('⏰ Morning Reminder Setup\n\nTo never miss your ritual:\n\n1. Add this page to your Home Screen\n2. Set a daily alarm for your wake-up time (e.g. 7:00 AM)\n3. Label it "🥥 Cocoburn Ritual"\n\nYour streak depends on consistency — good luck!');
+}
+
+// ══════════════════════════════════
+// PROGRESS / LOGS
+// ══════════════════════════════════
+function saveLog() {
+  const weight = parseFloat(document.getElementById('log-weight').value);
+  const waist = parseFloat(document.getElementById('log-waist').value);
+  const hips = parseFloat(document.getElementById('log-hips').value);
+
+  if (isNaN(weight)) { alert('Please enter your weight.'); return; }
+
+  const logs = LS.getJSON('cocoburn_logs') || [];
+  const today = todayKey();
+
+  // Remove existing entry for today
+  const filtered = logs.filter(l => l.date !== today);
+  filtered.push({ date: today, weight, waist: isNaN(waist)?null:waist, hips: isNaN(hips)?null:hips });
+  filtered.sort((a,b) => a.date.localeCompare(b.date));
+  LS.setJSON('cocoburn_logs', filtered);
+
+  // Set starting weight if first log
+  if (!LS.get('cocoburn_starting_weight')) {
+    LS.set('cocoburn_starting_weight', weight);
+  }
+
+  // Clear fields
+  document.getElementById('log-weight').value = '';
+  document.getElementById('log-waist').value = '';
+  document.getElementById('log-hips').value = '';
+
+  const msg = document.getElementById('log-success');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+
+  loadProgressData();
+}
+
+function loadProgressData() {
+  const logs = LS.getJSON('cocoburn_logs') || [];
+  const startW = parseFloat(LS.get('cocoburn_starting_weight'));
+  const currentLog = logs[logs.length - 1];
+
+  document.getElementById('starting-w').textContent = isNaN(startW) ? '—' : startW.toFixed(1);
+  document.getElementById('current-w').textContent = currentLog ? currentLog.weight.toFixed(1) : '—';
+
+  if (!isNaN(startW) && currentLog) {
+    const lost = startW - currentLog.weight;
+    document.getElementById('lost-w').textContent = (lost >= 0 ? lost : 0).toFixed(1);
+  } else {
+    document.getElementById('lost-w').textContent = '—';
+  }
+
+  renderHistory(logs);
+  renderChart(logs);
+}
+
+function renderHistory(logs) {
+  const container = document.getElementById('log-history');
+  const recent = logs.slice().reverse().slice(0, 7);
+  if (recent.length === 0) {
+    container.innerHTML = '<p style="font-size:14px;color:var(--muted);text-align:center;padding:16px 0;">No logs yet. Start tracking today!</p>';
+    return;
+  }
+  container.innerHTML = recent.map(l => `
+    <div class="log-item">
+      <div>
+        <div class="log-date">${l.date}</div>
+        <div class="log-data">${l.weight} lbs${l.waist?' · '+l.waist+'" waist':''}${l.hips?' · '+l.hips+'" hips':''}</div>
+      </div>
+      <button class="btn-del" onclick="deleteLog('${l.date}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function deleteLog(date) {
+  let logs = LS.getJSON('cocoburn_logs') || [];
+  logs = logs.filter(l => l.date !== date);
+  LS.setJSON('cocoburn_logs', logs);
+  loadProgressData();
+}
+
+function renderChart(logs) {
+  const canvas = document.getElementById('weightChart');
+  const emptyMsg = document.getElementById('chart-empty');
+  const recent = logs.slice(-14);
+
+  if (recent.length < 2) {
+    canvas.style.display = 'none';
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  emptyMsg.style.display = 'none';
+
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth - 36;
+  const H = 180;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+
+  const PAD = { top: 16, right: 16, bottom: 36, left: 44 };
+  const plotW = W - PAD.left - PAD.right;
+  const plotH = H - PAD.top - PAD.bottom;
+
+  const weights = recent.map(l => l.weight);
+  const minW = Math.min(...weights) - 2;
+  const maxW = Math.max(...weights) + 2;
+  const range = maxW - minW || 1;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#2a2a2a';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.top + plotH - (i / 4) * plotH;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + plotW, y); ctx.stroke();
+    const val = (minW + (i / 4) * range).toFixed(0);
+    ctx.fillStyle = '#6b7280'; ctx.font = '11px Inter'; ctx.textAlign = 'right';
+    ctx.fillText(val, PAD.left - 6, y + 4);
+  }
+
+  // X labels
+  ctx.fillStyle = '#6b7280'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+  recent.forEach((l, i) => {
+    if (i % Math.ceil(recent.length / 5) === 0 || i === recent.length - 1) {
+      const x = PAD.left + (i / (recent.length - 1)) * plotW;
+      const parts = l.date.split('-');
+      ctx.fillText(parts[1]+'/'+parts[2], x, H - 4);
+    }
+  });
+
+  // Line
+  const points = recent.map((l, i) => ({
+    x: PAD.left + (i / (recent.length - 1)) * plotW,
+    y: PAD.top + plotH - ((l.weight - minW) / range) * plotH
+  }));
+
+  ctx.beginPath();
+  ctx.strokeStyle = '#E8956D';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+
+  // Fill under
+  ctx.beginPath();
+  points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.lineTo(points[points.length-1].x, PAD.top + plotH);
+  ctx.lineTo(points[0].x, PAD.top + plotH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + plotH);
+  grad.addColorStop(0, 'rgba(232,149,109,0.25)');
+  grad.addColorStop(1, 'rgba(232,149,109,0)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Dots
+  points.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = '#E8956D';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+// ══════════════════════════════════
+// BONUSES
+// ══════════════════════════════════
+function toggleBonus(n) {
+  const card = document.getElementById('bonus-'+n);
+  card.classList.toggle('open');
+}
+
+// ══════════════════════════════════
+// RECIPES
+// ══════════════════════════════════
+let expandedRecipe = null;
+
+function toggleRecipe(n) {
+  const card = document.getElementById('recipe-'+n);
+  if (expandedRecipe === n) {
+    card.classList.remove('expanded');
+    expandedRecipe = null;
+  } else {
+    if (expandedRecipe) document.getElementById('recipe-'+expandedRecipe).classList.remove('expanded');
+    card.classList.add('expanded');
+    expandedRecipe = n;
+  }
+}
+
+function filterRecipes(cat, btn) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  if (expandedRecipe) {
+    document.getElementById('recipe-'+expandedRecipe).classList.remove('expanded');
+    expandedRecipe = null;
+  }
+  document.querySelectorAll('.recipe-card').forEach(card => {
+    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+  });
+}
+
+// ══════════════════════════════════
+// TABS
+// ══════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const navBtn = document.getElementById('nav-'+name);
+  navBtn.classList.add('active');
+  if (name === 'reset') navBtn.classList.add('nav-reset');
+  if (name === 'progress') loadProgressData();
+}
+
+// ══════════════════════════════════
+// CORTISOL RESET — UNLOCK & INJECT
+// ══════════════════════════════════
+function checkCortisolUnlock() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('unlock') === 'cortisol') {
+    LS.set('cocoburn_cortisol_unlocked', 'true');
+    // Remove param without reload
+    const clean = window.location.pathname + (window.location.hash || '');
+    history.replaceState(null, '', clean);
+    showCortisolToast('⚡ Cortisol Reset Protocol unlocked! Welcome to your upgrade.');
+  }
+  if (LS.get('cocoburn_cortisol_unlocked') === 'true') {
+    injectResetTab();
+  }
+}
+
+function showCortisolToast(msg) {
+  const el = document.getElementById('cortisol-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+function toggleModule(n) {
+  const card = document.getElementById('module-'+n);
+  // close others
+  document.querySelectorAll('.module-card').forEach(c => {
+    if (c.id !== 'module-'+n) c.classList.remove('open');
+  });
+  card.classList.toggle('open');
+}
+
+function injectResetTab() {
+  // ── Inject tab content into #content ──
+  const content = document.getElementById('content');
+  const tabEl = document.createElement('div');
+  tabEl.className = 'tab';
+  tabEl.id = 'tab-reset';
+  tabEl.innerHTML = `
+    <span class="reset-badge">⚡ EXCLUSIVE UPGRADE — Cortisol Reset Protocol</span>
+    <p class="section-sub" style="margin-bottom:16px;">Your 7-day hormonal detox to remove the hidden brake sabotaging your fat burn.</p>
+
+    <!-- Module 1 -->
+    <div class="module-card border-gold" id="module-1">
+      <div class="module-header" onclick="toggleModule(1)">
+        <div class="module-left">
+          <div class="module-icon">🌅</div>
+          <div>
+            <div class="module-title">Module 1 — The Cortisol Reset Guide</div>
+            <div class="module-badge">MORNING &amp; EVENING ROUTINE</div>
+          </div>
+        </div>
+        <div class="module-chevron">▼</div>
+      </div>
+      <div class="module-body">
+        <p class="module-intro">Cortisol follows a natural daily rhythm — it should be high in the morning to wake you up, and low at night to let you sleep and burn fat. When this rhythm is disrupted by chronic stress, your body stores fat instead of burning it — even in ketosis. This guide resets that rhythm in 8 minutes a day.</p>
+
+        <div class="module-section">☀️ Morning Protocol (4 minutes — do this before your Cocoburn ritual)</div>
+        <div class="module-step">
+          <div class="module-step-title">Step 1 — Cortisol Anchor Breath (2 minutes)</div>
+          <div class="module-step-desc">Before getting out of bed, place one hand on your chest and one on your belly. Inhale slowly through your nose for 4 counts, expanding your belly outward. Hold for 4 counts. Exhale through your mouth for 6 counts. Repeat 8 times. This activates your parasympathetic nervous system, signaling safety to your body and preventing the morning cortisol spike that blocks fat burning.</div>
+        </div>
+        <div class="module-step">
+          <div class="module-step-title">Step 2 — Cold Water Reset (1 minute)</div>
+          <div class="module-step-desc">Splash cold water on your face and wrists for 60 seconds. This activates the mammalian dive reflex, which rapidly lowers cortisol and increases mental clarity. Do this before checking your phone — screen exposure in the first 10 minutes of the day elevates cortisol by up to 37%.</div>
+        </div>
+        <div class="module-step">
+          <div class="module-step-title">Step 3 — Intention Setting (1 minute)</div>
+          <div class="module-step-desc">Write or say out loud one thing you are grateful for and one thing you are looking forward to today. Gratitude has been clinically shown to reduce cortisol by up to 23% within 15 minutes by shifting your brain from threat detection to reward mode.</div>
+        </div>
+
+        <div class="module-section">🌙 Evening Protocol (4 minutes — do this 30 minutes before bed)</div>
+        <div class="module-step">
+          <div class="module-step-title">Step 1 — Digital Sunset (immediate)</div>
+          <div class="module-step-desc">Turn off all screens 30 minutes before bed. Blue light suppresses melatonin and keeps cortisol elevated. If you must use a screen, enable night mode and maximum warm tone.</div>
+        </div>
+        <div class="module-step">
+          <div class="module-step-title">Step 2 — Magnesium Tension Release (2 minutes)</div>
+          <div class="module-step-desc">Lie flat on your back. Starting from your toes, tense each muscle group for 5 seconds and release, working upward to your shoulders. This progressive muscle relaxation reduces nighttime cortisol by up to 31% and significantly deepens sleep quality.</div>
+        </div>
+        <div class="module-step">
+          <div class="module-step-title">Step 3 — Cortisol Journal (2 minutes)</div>
+          <div class="module-step-desc">Write down 3 things that went well today — no matter how small. This closes the stress loop in your nervous system, preventing cortisol from staying elevated overnight. Research shows this alone reduces next-morning fasting cortisol by 18%.</div>
+        </div>
+        <div class="tip-box">💡 <strong>Pro Tip:</strong> Perform your morning protocol before your Cocoburn ritual for maximum synergy. The Cortisol Anchor Breath primes your liver to convert MCTs into ketones faster — amplifying your fat-burning results.</div>
+      </div>
+    </div>
+
+    <!-- Module 2 -->
+    <div class="module-card border-salmon" id="module-2">
+      <div class="module-header" onclick="toggleModule(2)">
+        <div class="module-left">
+          <div class="module-icon">🗺️</div>
+          <div>
+            <div class="module-title">Module 2 — The Emotional Hunger Map</div>
+            <div class="module-badge">60-SECOND INTERRUPT METHOD</div>
+          </div>
+        </div>
+        <div class="module-chevron">▼</div>
+      </div>
+      <div class="module-body">
+        <p class="module-intro">Emotional hunger is not a character flaw. It is a hormonal response. When cortisol spikes, it drops serotonin — your calm, satisfied hormone — and triggers a craving for fast-energy foods (sugar, carbs, fat). Your brain is literally trying to self-medicate. This map teaches you to interrupt that response in 60 seconds, before it takes control.</p>
+
+        <div class="module-section">🔍 Step 1 — Identify (10 seconds)</div>
+        <div class="module-step">
+          <div class="module-step-desc">The moment a craving appears, pause and ask: "Did this craving appear suddenly, or did it build gradually?" Emotional hunger appears suddenly and craves something specific (chocolate, chips, bread). Physical hunger builds gradually and is satisfied by anything. If the craving was sudden and specific — it's emotional. Proceed to Step 2.</div>
+        </div>
+
+        <div class="module-section">🌬️ Step 2 — Interrupt (20 seconds)</div>
+        <div class="module-step">
+          <div class="module-step-desc">Do not fight the craving — redirect it. Immediately do one of the following: (a) Take 5 deep belly breaths — this raises serotonin within 30 seconds. (b) Drink a full glass of cold water slowly — this reduces the craving intensity by up to 40%. (c) Step outside or open a window and take 3 slow breaths of fresh air. The goal is not to eliminate desire — it's to create a 20-second gap between the impulse and the action. That gap is where your choice lives.</div>
+        </div>
+
+        <div class="module-section">💬 Step 3 — Identify the Emotion (20 seconds)</div>
+        <div class="module-step">
+          <div class="module-step-desc">Ask yourself: "What am I actually feeling right now?" Write it down or say it aloud. Common triggers: boredom, loneliness, anxiety, feeling overwhelmed, seeking reward after effort. Naming the emotion activates your prefrontal cortex — the rational brain — and automatically reduces the emotional brain's urgency. You don't need to solve the emotion. Just name it.</div>
+        </div>
+
+        <div class="module-section">✅ Step 4 — Choose (10 seconds)</div>
+        <div class="module-step">
+          <div class="module-step-desc">Now make a conscious choice. You can eat if you want to — but it is now a decision, not a reaction. Many women find that after Steps 1–3, the craving has already passed or reduced significantly. If it hasn't, choose a cortisol-lowering snack from The Hormonal Food Code (Secret Bonus) instead of a high-sugar option.</div>
+        </div>
+        <div class="tip-box">💡 Use this map especially at 3–4pm and 9–10pm — the two peak cortisol-drop windows when emotional hunger is strongest in women over 38.</div>
+      </div>
+    </div>
+
+    <!-- Module 3 -->
+    <div class="module-card border-blue" id="module-3">
+      <div class="module-header" onclick="toggleModule(3)">
+        <div class="module-left">
+          <div class="module-icon">😴</div>
+          <div>
+            <div class="module-title">Module 3 — The Deep Sleep Accelerator</div>
+            <div class="module-badge">NIGHTLY FAT-BURNING PROTOCOL</div>
+          </div>
+        </div>
+        <div class="module-chevron">▼</div>
+      </div>
+      <div class="module-body">
+        <p class="module-intro">Between 10pm and 2am, your body releases its highest concentration of growth hormone — the primary hormone responsible for burning stored fat and rebuilding lean muscle. But this release only happens during deep sleep (Stage 3 NREM). If cortisol is elevated at night, it suppresses this release completely. This protocol is designed to maximize your time in deep sleep — turning night into your most powerful fat-burning window.</p>
+
+        <div class="module-section">🌡️ The Sleep Temperature Protocol</div>
+        <div class="module-step">
+          <div class="module-step-desc">Your body drops its core temperature by 1–2°F to enter deep sleep. Keep your bedroom between 65–68°F (18–20°C). If you don't have AC, use a fan directed at your feet — the foot contains specialized heat-release vessels that accelerate core temperature drop. A cooling pillow or light cotton sheets also significantly improve deep sleep entry time.</div>
+        </div>
+
+        <div class="module-section">🌑 The Dark Room Protocol</div>
+        <div class="module-step">
+          <div class="module-step-desc">Complete darkness is non-negotiable for melatonin production. Even a small LED light can suppress melatonin by 50%. Use blackout curtains or a sleep mask. Cover any device LEDs with tape. This single change can increase your deep sleep by 20–30 minutes per night.</div>
+        </div>
+
+        <div class="module-section">🫖 The Pre-Sleep Cortisol Flush (30 minutes before bed)</div>
+        <div class="module-step">
+          <div class="module-step-title">Option A — Chamomile &amp; Ashwagandha Tea</div>
+          <div class="module-step-desc">Steep 1 chamomile tea bag with ¼ tsp ashwagandha powder in hot water for 5 minutes. Add honey. Ashwagandha reduces nighttime cortisol by up to 28%.</div>
+        </div>
+        <div class="module-step">
+          <div class="module-step-title">Option B — Tart Cherry Juice (4oz)</div>
+          <div class="module-step-desc">Naturally contains melatonin precursors and has been shown in clinical trials to increase deep sleep duration by an average of 34 minutes.</div>
+        </div>
+
+        <div class="module-section">📵 The 90-Minute Wind-Down Rule</div>
+        <div class="module-step">
+          <div class="module-step-desc">Your nervous system needs 90 minutes to fully downshift from wakefulness to sleep readiness. Starting 90 minutes before your target sleep time: dim all lights to 50% or less, avoid emotionally stimulating content (news, arguments, intense TV), do your Evening Protocol from Module 1, and avoid eating for at least 2 hours before bed — late eating elevates insulin, which blocks the growth hormone release window.</div>
+        </div>
+        <div class="tip-box">💡 Aim for sleep before 11pm. The growth hormone peak between 10pm–2am is fixed to clock time — not to when you fall asleep. Every hour of sleep before midnight counts double for fat burning.</div>
+      </div>
+    </div>
+
+    <!-- Module 4 — Secret Bonus -->
+    <div class="module-card border-secret" id="module-4">
+      <div class="module-header" onclick="toggleModule(4)">
+        <div class="module-left">
+          <div class="module-icon">🔒</div>
+          <div>
+            <div class="module-title">Secret Bonus — The Hormonal Food Code</div>
+            <div class="module-badge">MEMBERS ONLY</div>
+          </div>
+        </div>
+        <div class="module-chevron">▼</div>
+      </div>
+      <div class="module-body">
+        <p class="module-intro">These 12 foods actively reduce cortisol, potentialize your Cocoburn ketosis, and eliminate the hormonal triggers behind emotional hunger. Incorporate at least 3 per day for maximum results.</p>
+
+        <div class="module-section">The 12 Cortisol-Lowering Foods</div>
+        <div class="food-grid">
+          <div class="food-item"><div class="food-emoji">🥑</div><div class="food-name">Avocado</div><div class="food-desc">Reduces cortisol by blocking the adrenal response. Rich in potassium, depleted by stress.</div></div>
+          <div class="food-item"><div class="food-emoji">🫐</div><div class="food-name">Blueberries</div><div class="food-desc">Anthocyanins reduce cortisol-induced inflammation. Eat ½ cup in the morning.</div></div>
+          <div class="food-item"><div class="food-emoji">🍫</div><div class="food-name">Dark Chocolate (85%+)</div><div class="food-desc">Reduces cortisol and raises serotonin. One square at 3pm interrupts the afternoon cortisol peak.</div></div>
+          <div class="food-item"><div class="food-emoji">🐟</div><div class="food-name">Salmon</div><div class="food-desc">Omega-3s suppress the stress hormone pathway at the cellular level. Aim for 3x per week.</div></div>
+          <div class="food-item"><div class="food-emoji">🧄</div><div class="food-name">Garlic</div><div class="food-desc">Allicin blocks cortisol secretion at the adrenal gland. Add to any savory meal.</div></div>
+          <div class="food-item"><div class="food-emoji">🥦</div><div class="food-name">Broccoli</div><div class="food-desc">Sulforaphane reduces cortisol-driven inflammation and supports liver detox of stress hormones.</div></div>
+          <div class="food-item"><div class="food-emoji">🫚</div><div class="food-name">Extra Virgin Olive Oil</div><div class="food-desc">Oleocanthal mimics anti-inflammatory drugs. Use as your primary cooking oil.</div></div>
+          <div class="food-item"><div class="food-emoji">🍵</div><div class="food-name">Green Tea</div><div class="food-desc">L-theanine raises GABA and reduces cortisol by 20% within 30 minutes.</div></div>
+          <div class="food-item"><div class="food-emoji">🥜</div><div class="food-name">Almonds</div><div class="food-desc">Magnesium and B vitamins directly reduce cortisol production. Ideal afternoon snack.</div></div>
+          <div class="food-item"><div class="food-emoji">🍠</div><div class="food-name">Sweet Potato</div><div class="food-desc">Complex carbs raise serotonin naturally. Best at dinner to support evening cortisol drop.</div></div>
+          <div class="food-item"><div class="food-emoji">🥥</div><div class="food-name">Coconut Oil</div><div class="food-desc">MCTs support adrenal function and reduce cortisol-driven fat storage. You're already using this!</div></div>
+          <div class="food-item"><div class="food-emoji">🌿</div><div class="food-name">Ashwagandha</div><div class="food-desc">The most clinically studied cortisol reducer. Add ¼ tsp to tea, coffee, or your morning drink.</div></div>
+        </div>
+
+        <div class="module-section">⏰ The Anti-Stress Elixir — Take at 3pm Daily</div>
+        <div class="module-step">
+          <div class="module-step-title">Ingredients</div>
+          <div class="module-step-desc" style="margin-bottom:10px;">
+            • 1 cup warm (not hot) water<br>
+            • 1 tsp raw apple cider vinegar<br>
+            • ¼ tsp ashwagandha powder<br>
+            • 1 tsp raw honey<br>
+            • Juice of ¼ lemon<br>
+            • 1 small square dark chocolate (85%+) — eat alongside, not in drink
+          </div>
+          <div class="module-step-title">Instructions</div>
+          <div class="module-step-desc" style="margin-bottom:10px;">Mix all liquid ingredients. Drink slowly over 5 minutes. Eat the dark chocolate square at the end.</div>
+          <div class="module-step-title">Why It Works</div>
+          <div class="module-step-desc">Apple cider vinegar stabilizes blood sugar (preventing the glucose drop that triggers cortisol). Ashwagandha blocks cortisol at the adrenal receptor. Honey raises serotonin. Dark chocolate provides immediate cortisol relief. Together they create a powerful hormonal interrupt at the peak stress window of the day.</div>
+        </div>
+      </div>
+    </div>
+  `;
+  content.appendChild(tabEl);
+
+  // ── Inject nav button ──
+  const nav = document.getElementById('bottom-nav');
+  const btn = document.createElement('button');
+  btn.className = 'nav-item';
+  btn.id = 'nav-reset';
+  btn.innerHTML = '<span class="nav-icon">⚡</span><span class="nav-label">Reset</span>';
+  btn.onclick = () => switchTab('reset');
+  nav.appendChild(btn);
+}
+
+// ══════════════════════════════════
+// BOOT
+// ══════════════════════════════════
+(function boot() {
+  checkCortisolUnlock();
+  const onboarded = LS.get('cocoburn_onboarded');
+  const name = LS.get('cocoburn_name') || 'Friend';
+  if (onboarded === 'true') {
+    launchApp(name);
+  }
+  // else onboarding is already visible
+})();
+
+// ══════════════════════════════════
+// SERVICE WORKER
+// ══════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
